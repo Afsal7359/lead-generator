@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kerala Business Lead Finder v2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f4f4f4;color:#1a1a1a;font-size:14px}
+.wrap{max-width:1280px;margin:0 auto;padding:16px}
+h1{font-size:20px;font-weight:700;margin-bottom:2px}
+.sub{color:#666;font-size:12px;margin-bottom:16px}
+.card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:16px;margin-bottom:14px}
+.card-title{font-size:13px;font-weight:700;margin-bottom:10px;color:#333;text-transform:uppercase;letter-spacing:.4px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px}
+label{font-size:11px;color:#666;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+input,select{height:36px;border:1px solid #ddd;border-radius:6px;padding:0 10px;font-size:13px;background:#fff;color:#1a1a1a;width:100%}
+input:focus,select:focus{outline:none;border-color:#2563eb}
+.btn{height:36px;padding:0 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn-blue{background:#2563eb;color:#fff}.btn-blue:hover{background:#1d4ed8}.btn-blue:disabled{background:#93c5fd;cursor:not-allowed}
+.btn-gray{background:#fff;color:#333;border:1px solid #ccc}.btn-gray:hover{background:#f5f5f5}
+.btn-green{background:#16a34a;color:#fff}.btn-green:hover{background:#15803d}
+.btn-red{background:#dc2626;color:#fff}.btn-red:hover{background:#b91c1c}
+.btn-orange{background:#ea580c;color:#fff}.btn-orange:hover{background:#c2410c}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;text-align:center}
+.sn{font-size:22px;font-weight:700}.sl{font-size:11px;color:#666;margin-top:1px}
+.sn.blue{color:#2563eb}.sn.red{color:#dc2626}.sn.amber{color:#d97706}.sn.green{color:#16a34a}.sn.purple{color:#7c3aed}.sn.gray{color:#374151}
+.prog-wrap{height:6px;background:#e5e7eb;border-radius:3px;margin:10px 0;display:none;overflow:hidden}
+.prog-bar{height:100%;background:#2563eb;width:0%;transition:width 0.4s;border-radius:3px}
+.log{background:#111827;color:#34d399;padding:10px 14px;border-radius:6px;font-family:monospace;font-size:11px;height:90px;overflow-y:auto;margin-top:8px;line-height:1.6}
+.log span.err{color:#f87171}.log span.ok{color:#34d399}.log span.info{color:#60a5fa}.log span.warn{color:#fbbf24}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid #d1d5db;cursor:pointer;background:#fff;color:#374151;user-select:none}
+.chip.on{background:#2563eb;color:#fff;border-color:#2563eb}
+.table-wrap{overflow:auto;max-height:500px;border:1px solid #e5e7eb;border-radius:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#f9fafb;padding:9px 10px;text-align:left;font-weight:700;font-size:11px;color:#6b7280;border-bottom:1px solid #e5e7eb;position:sticky;top:0;z-index:2;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f3f4f6}
+tbody tr:hover{background:#eff6ff}
+td{padding:8px 10px;vertical-align:middle}
+.b{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;margin:1px;white-space:nowrap}
+.b-red{background:#fee2e2;color:#991b1b}
+.b-amber{background:#fef3c7;color:#92400e}
+.b-blue{background:#dbeafe;color:#1e40af}
+.b-purple{background:#ede9fe;color:#5b21b6}
+.b-green{background:#dcfce7;color:#166534}
+.b-gray{background:#f3f4f6;color:#374151}
+.b-hot{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
+.b-warm{background:#fffbeb;color:#92400e;border:1px solid #fcd34d}
+.b-cold{background:#f0fdf4;color:#166534;border:1px solid #86efac}
+.filters-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.filters-bar input{flex:1;min-width:200px}
+.empty{text-align:center;padding:40px;color:#9ca3af;font-size:13px}
+.api-note{background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px 14px;font-size:12px;color:#1e40af;margin-bottom:14px;line-height:1.7}
+.api-note b{font-weight:700}
+.api-note a{color:#1d4ed8}
+.api-note code{background:#dbeafe;padding:1px 5px;border-radius:3px;font-family:monospace;font-size:11px}
+.hidden{display:none}
+#mapDiv{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px}
+</style>
+</head>
+<body>
+<div id="mapDiv"></div>
+<div class="wrap">
+  <h1>🔍 Kerala Business Lead Finder v2</h1>
+  <p class="sub">Uses Google Maps JS Places API (browser-safe) — finds businesses needing website, app, SEO &amp; all digital services</p>
+
+  <div class="api-note">
+    <b>✅ Fixed: No more CORS errors.</b> This version uses the <b>Google Maps JavaScript API</b> (browser-compatible).<br>
+    <b>Get a free API key:</b> <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → New Project → Enable <b>"Maps JavaScript API"</b> + <b>"Places API"</b> → Credentials → API Key<br>
+    <b>Note:</b> Also go to <b>API restrictions → Allow all</b> (or add <code>localhost</code> &amp; your domain to HTTP referrers).<br>
+    Free tier: $200/month credit — enough for <b>10,000+ business lookups</b> at no cost.
+  </div>
+
+  <div class="card">
+    <div class="card-title">API Key &amp; Configuration</div>
+    <div class="row" style="margin-bottom:12px">
+      <div class="field" style="flex:3">
+        <label>Google Maps API Key *</label>
+        <input type="password" id="apiKey" placeholder="AIzaSy..." />
+      </div>
+      <div class="field">
+        <label>Radius (km)</label>
+        <select id="radius">
+          <option value="5000">5 km</option>
+          <option value="10000" selected>10 km</option>
+          <option value="20000">20 km</option>
+          <option value="30000">30 km</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Lead target</label>
+        <select id="maxLeads">
+          <option value="500">500</option>
+          <option value="1000">1,000</option>
+          <option value="2000" selected>2,000</option>
+          <option value="5000">5,000</option>
+        </select>
+      </div>
+      <button class="btn btn-blue" id="loadBtn" onclick="loadAPI()">Load API &amp; Start</button>
+    </div>
+
+    <div style="margin-bottom:10px">
+      <label style="display:block;margin-bottom:4px">Business Categories <span style="font-size:10px;color:#9ca3af">(click to toggle)</span></label>
+      <div class="chip-row" id="catChips"></div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="display:block;margin-bottom:4px">Kerala Districts</label>
+      <div class="chip-row" id="distChips"></div>
+    </div>
+
+    <div style="margin-bottom:10px">
+      <label style="display:block;margin-bottom:4px">Filter leads by missing service</label>
+      <div class="chip-row">
+        <span class="chip on" id="f-noWeb" onclick="toggleF('noWeb')">No Website</span>
+        <span class="chip on" id="f-noApp" onclick="toggleF('noApp')">No App</span>
+        <span class="chip on" id="f-noSocial" onclick="toggleF('noSocial')">Weak Social Media</span>
+        <span class="chip on" id="f-lowRating" onclick="toggleF('lowRating')">Low/No Reviews</span>
+        <span class="chip on" id="f-noPhone" onclick="toggleF('noPhone')">No Phone Listed</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-blue" id="startBtn" onclick="startSearch()" disabled>▶ Start Search</button>
+      <button class="btn btn-gray" id="pauseBtn" onclick="togglePause()" style="display:none">⏸ Pause</button>
+      <button class="btn btn-red" id="stopBtn" onclick="stopSearch()" style="display:none">⏹ Stop</button>
+      <button class="btn btn-green" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-gray" onclick="clearAll()">🗑 Clear All</button>
+      <span id="statusTxt" style="font-size:12px;color:#6b7280;align-self:center;margin-left:4px"></span>
+    </div>
+    <div class="prog-wrap" id="progWrap"><div class="prog-bar" id="progBar"></div></div>
+    <div class="log" id="log">Enter your API key and click "Load API &amp; Start"...</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="sn blue" id="sTotal">0</div><div class="sl">Scanned</div></div>
+    <div class="stat"><div class="sn red" id="sLeads">0</div><div class="sl">Leads found</div></div>
+    <div class="stat"><div class="sn amber" id="sNoWeb">0</div><div class="sl">No website</div></div>
+    <div class="stat"><div class="sn purple" id="sNoApp">0</div><div class="sl">Need app</div></div>
+    <div class="stat"><div class="sn gray" id="sNoPhone">0</div><div class="sl">No phone</div></div>
+    <div class="stat"><div class="sn green" id="sDists">0</div><div class="sl">Districts</div></div>
+  </div>
+
+  <div class="card">
+    <div class="filters-bar">
+      <input type="text" id="searchBox" placeholder="Search name, category, district, area..." oninput="renderTable()">
+      <select id="fDist" onchange="renderTable()"><option value="">All districts</option></select>
+      <select id="fCat" onchange="renderTable()"><option value="">All categories</option></select>
+      <select id="fNeed" onchange="renderTable()">
+        <option value="">All needs</option>
+        <option value="noWeb">No website</option>
+        <option value="noPhone">No phone</option>
+        <option value="lowRating">Low rating</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Business Name</th>
+            <th>Category</th>
+            <th>District</th>
+            <th>Address</th>
+            <th>Phone</th>
+            <th>Website</th>
+            <th>Rating</th>
+            <th>What they need</th>
+            <th>Priority</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="10" class="empty">Load API and start search to find leads</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATS = [
+  {label:"Restaurants",type:"restaurant"},
+  {label:"Clinics / Doctors",type:"doctor"},
+  {label:"Hospitals",type:"hospital"},
+  {label:"Pharmacy",type:"pharmacy"},
+  {label:"Hotels",type:"lodging"},
+  {label:"Supermarkets",type:"supermarket"},
+  {label:"Jewellery",type:"jewelry_store"},
+  {label:"Beauty Salons",type:"beauty_salon"},
+  {label:"Clothing Stores",type:"clothing_store"},
+  {label:"Hardware",type:"hardware_store"},
+  {label:"Electronics",type:"electronics_store"},
+  {label:"Real Estate",type:"real_estate_agency"},
+  {label:"Car Service",type:"car_repair"},
+  {label:"Car Dealer",type:"car_dealer"},
+  {label:"Travel Agency",type:"travel_agency"},
+  {label:"Bakery",type:"bakery"},
+  {label:"Furniture",type:"furniture_store"},
+  {label:"Dentist",type:"dentist"},
+  {label:"Gym / Fitness",type:"gym"},
+  {label:"Accounting",type:"accounting"},
+  {label:"Lawyers",type:"lawyer"},
+  {label:"Insurance",type:"insurance_agency"},
+  {label:"Moving",type:"moving_company"},
+  {label:"Plumber",type:"plumber"},
+  {label:"Electrician",type:"electrician"},
+  {label:"Painter",type:"painter"},
+  {label:"Laundry",type:"laundry"},
+  {label:"Pet Store",type:"pet_store"},
+  {label:"Shoe Store",type:"shoe_store"},
+  {label:"Florist",type:"florist"},
+];
+
+const DISTS = [
+  {name:"Thiruvananthapuram",lat:8.5241,lng:76.9366},
+  {name:"Kollam",lat:8.8932,lng:76.6141},
+  {name:"Pathanamthitta",lat:9.2648,lng:76.787},
+  {name:"Alappuzha",lat:9.4981,lng:76.3388},
+  {name:"Kottayam",lat:9.5916,lng:76.5222},
+  {name:"Idukki",lat:9.9189,lng:77.1025},
+  {name:"Ernakulam",lat:9.9312,lng:76.2673},
+  {name:"Thrissur",lat:10.5276,lng:76.2144},
+  {name:"Palakkad",lat:10.7867,lng:76.6548},
+  {name:"Malappuram",lat:11.051,lng:76.0711},
+  {name:"Kozhikode",lat:11.2588,lng:75.7804},
+  {name:"Wayanad",lat:11.6854,lng:76.132},
+  {name:"Kannur",lat:11.8745,lng:75.3704},
+  {name:"Kasaragod",lat:12.4996,lng:74.9869},
+];
+
+let activeCats = new Set(CATS.map(c=>c.type));
+let activeDists = new Set(DISTS.map(d=>d.name));
+let activeFilters = new Set(['noWeb','noApp','noSocial','lowRating','noPhone']);
+let leads = [];
+let seenIds = new Set();
+let running = false, paused = false, stopped = false;
+let svc = null;
+let counts = {total:0,leads:0,noWeb:0,noApp:0,noPhone:0};
+
+function initChips(){
+  const cc=document.getElementById("catChips");
+  CATS.forEach(c=>{
+    const el=document.createElement("span");
+    el.className="chip on";el.textContent=c.label;el.dataset.v=c.type;
+    el.onclick=()=>{activeCats.has(c.type)?activeCats.delete(c.type):activeCats.add(c.type);el.classList.toggle("on")};
+    cc.appendChild(el);
+  });
+  const dc=document.getElementById("distChips");
+  DISTS.forEach(d=>{
+    const el=document.createElement("span");
+    el.className="chip on";el.textContent=d.name;el.dataset.v=d.name;
+    el.onclick=()=>{activeDists.has(d.name)?activeDists.delete(d.name):activeDists.add(d.name);el.classList.toggle("on")};
+    dc.appendChild(el);
+  });
+}
+initChips();
+
+function toggleF(f){
+  activeFilters.has(f)?activeFilters.delete(f):activeFilters.add(f);
+  document.getElementById("f-"+f).classList.toggle("on");
+}
+
+function log(msg,type="ok"){
+  const el=document.getElementById("log");
+  const t=new Date().toLocaleTimeString("en-IN");
+  const s=document.createElement("span");
+  s.className=type;
+  s.textContent=`[${t}] ${msg}\n`;
+  el.appendChild(s);
+  el.scrollTop=el.scrollHeight;
+}
+
+function loadAPI(){
+  const key=document.getElementById("apiKey").value.trim();
+  if(!key||key.length<30){alert("Please enter a valid Google Maps API key (starts with AIza...)");return;}
+  if(window.google){initService();return;}
+  log("Loading Google Maps JavaScript API...","info");
+  const script=document.createElement("script");
+  script.src=`https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places&callback=onMapsLoaded`;
+  script.onerror=()=>log("Failed to load Maps API. Check your key and internet connection.","err");
+  window.onMapsLoaded=()=>{
+    log("✅ Google Maps API loaded successfully!","ok");
+    initService();
+  };
+  document.head.appendChild(script);
+}
+
+function initService(){
+  const mapDiv=document.getElementById("mapDiv");
+  const map=new google.maps.Map(mapDiv,{center:{lat:10.5,lng:76.5},zoom:7});
+  svc=new google.maps.places.PlacesService(map);
+  log("✅ Places service ready. Click Start Search now.","ok");
+  document.getElementById("startBtn").disabled=false;
+  document.getElementById("loadBtn").disabled=true;
+}
+
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function textSearch(request){
+  return new Promise((resolve)=>{
+    svc.textSearch(request,(results,status,pagination)=>{
+      resolve({results:results||[],status,pagination});
+    });
+  });
+}
+
+function getDetails(placeId){
+  return new Promise((resolve)=>{
+    svc.getDetails({
+      placeId,
+      fields:["name","formatted_address","formatted_phone_number","website","rating","user_ratings_total","types","url","business_status","opening_hours"]
+    },(result,status)=>{
+      resolve(status===google.maps.places.PlacesServiceStatus.OK?result:null);
+    });
+  });
+}
+
+async function startSearch(){
+  if(!svc){log("Load API first!","err");return;}
+  if(activeCats.size===0){alert("Select at least one category");return;}
+  if(activeDists.size===0){alert("Select at least one district");return;}
+  running=true;paused=false;stopped=false;
+  counts={total:0,leads:0,noWeb:0,noApp:0,noPhone:0};
+  document.getElementById("startBtn").disabled=true;
+  document.getElementById("pauseBtn").style.display="inline-flex";
+  document.getElementById("stopBtn").style.display="inline-flex";
+  document.getElementById("progWrap").style.display="block";
+  document.getElementById("log").innerHTML="";
+
+  const maxLeads=parseInt(document.getElementById("maxLeads").value);
+  const radius=parseInt(document.getElementById("radius").value);
+  const catList=CATS.filter(c=>activeCats.has(c.type));
+  const distList=DISTS.filter(d=>activeDists.has(d.name));
+
+  log(`🚀 Starting search | Target: ${maxLeads} leads | ${catList.length} categories × ${distList.length} districts`,"info");
+
+  outer:
+  for(const dist of distList){
+    for(const cat of catList){
+      if(stopped)break outer;
+      while(paused&&!stopped)await delay(500);
+      if(stopped)break outer;
+
+      log(`Searching ${cat.label} in ${dist.name}...`,"info");
+      let paginationObj=null;
+      let page=0;
+
+      do{
+        if(stopped)break outer;
+        while(paused&&!stopped)await delay(500);
+
+        const req={
+          query:`${cat.label} in ${dist.name} Kerala`,
+          location:new google.maps.LatLng(dist.lat,dist.lng),
+          radius,
+          type:cat.type
+        };
+
+        const {results,status,pagination}=await textSearch(req);
+
+        if(status===google.maps.places.PlacesServiceStatus.ZERO_RESULTS){
+          log(`No results for ${cat.label} in ${dist.name}`,"warn");
+          break;
+        }
+        if(status!==google.maps.places.PlacesServiceStatus.OK){
+          log(`Error: ${status} for ${cat.label} in ${dist.name}`,"err");
+          break;
+        }
+
+        log(`Found ${results.length} businesses — checking details...`,"ok");
+
+        for(const place of results){
+          if(stopped)break outer;
+          while(paused&&!stopped)await delay(500);
+          if(seenIds.has(place.place_id))continue;
+          seenIds.add(place.place_id);
+          counts.total++;
+
+          const det=await getDetails(place.place_id);
+          await delay(200);
+
+          const noWeb=!det?.website;
+          const noPhone=!det?.formatted_phone_number;
+          const lowRating=(!det?.rating)||(det?.user_ratings_total<10);
+          const needsHelp=noWeb||noPhone||lowRating;
+
+          // Filter based on active filters
+          const matchFilter=(activeFilters.has('noWeb')&&noWeb)||
+                            (activeFilters.has('noPhone')&&noPhone)||
+                            (activeFilters.has('lowRating')&&lowRating)||
+                            activeFilters.has('noApp')||
+                            activeFilters.has('noSocial');
+
+          if(needsHelp||matchFilter){
+            counts.leads++;
+            if(noWeb)counts.noWeb++;
+            if(noPhone)counts.noPhone++;
+
+            // What do they need
+            const needs=[];
+            if(noWeb)needs.push("Website");
+            needs.push("Mobile App"); // all offline businesses need an app
+            if(noPhone)needs.push("Google Listing");
+            if(lowRating)needs.push("SEO/Reviews");
+            if(!det?.opening_hours)needs.push("Business Profile");
+            needs.push("WhatsApp Business");
+
+            // Priority
+            let priority="Cold";
+            if(noWeb&&noPhone)priority="Hot";
+            else if(noWeb)priority="Hot";
+            else if(lowRating&&noPhone)priority="Warm";
+            else priority="Warm";
+
+            const addr=det?.formatted_address||place.formatted_address||"";
+            const area=addr.split(",")[0]?.trim()||"";
+
+            const lead={
+              id:leads.length+1,
+              name:det?.name||place.name,
+              category:cat.label,
+              district:dist.name,
+              area,
+              address:addr,
+              phone:det?.formatted_phone_number||"—",
+              website:det?.website||"—",
+              rating:det?.rating||"—",
+              reviews:det?.user_ratings_total||0,
+              noWeb,noPhone,lowRating,
+              needs:needs.join(", "),
+              priority,
+              mapsUrl:det?.url||`https://maps.google.com/?place_id=${place.place_id}`,
+              placeId:place.place_id,
+              status:det?.business_status||"OPERATIONAL"
+            };
+            leads.push(lead);
+            updateDistFilter(dist.name);
+            updateCatFilter(cat.label);
+            renderTable();
+            updateStats();
+
+            const pct=Math.min(100,Math.round(leads.length/maxLeads*100));
+            document.getElementById("progBar").style.width=pct+"%";
+            document.getElementById("statusTxt").textContent=`${leads.length}/${maxLeads} leads`;
+            log(`✅ LEAD: ${lead.name} | ${dist.name} | Needs: ${needs.slice(0,2).join(", ")}`,"ok");
+
+            if(leads.length>=maxLeads){
+              log(`🎯 Target of ${maxLeads} leads reached!`,"ok");
+              stopped=true;break outer;
+            }
+          }
+        }
+
+        paginationObj=pagination;
+        page++;
+        if(paginationObj?.hasNextPage&&page<2){
+          await delay(2500);
+          paginationObj.nextPage();
+        }else{
+          paginationObj=null;
+        }
+      }while(paginationObj&&page<2);
+
+      await delay(300);
+    }
+  }
+
+  running=false;
+  document.getElementById("startBtn").disabled=false;
+  document.getElementById("pauseBtn").style.display="none";
+  document.getElementById("stopBtn").style.display="none";
+  log(`✅ Done! ${leads.length} leads found from ${counts.total} businesses scanned.`,"ok");
+}
+
+function togglePause(){
+  paused=!paused;
+  document.getElementById("pauseBtn").textContent=paused?"▶ Resume":"⏸ Pause";
+  log(paused?"⏸ Paused.":"▶ Resumed.","warn");
+}
+function stopSearch(){
+  stopped=true;running=false;paused=false;
+  document.getElementById("startBtn").disabled=false;
+  document.getElementById("pauseBtn").style.display="none";
+  document.getElementById("stopBtn").style.display="none";
+  log("⏹ Search stopped by user.","warn");
+}
+function clearAll(){
+  leads=[];seenIds=new Set();counts={total:0,leads:0,noWeb:0,noApp:0,noPhone:0};
+  updateStats();renderTable();
+  document.getElementById("fDist").innerHTML='<option value="">All districts</option>';
+  document.getElementById("fCat").innerHTML='<option value="">All categories</option>';
+  document.getElementById("log").innerHTML="Cleared. Ready.\n";
+}
+
+function updateStats(){
+  document.getElementById("sTotal").textContent=counts.total.toLocaleString();
+  document.getElementById("sLeads").textContent=counts.leads.toLocaleString();
+  document.getElementById("sNoWeb").textContent=counts.noWeb.toLocaleString();
+  document.getElementById("sNoApp").textContent=counts.leads.toLocaleString();
+  document.getElementById("sNoPhone").textContent=counts.noPhone.toLocaleString();
+  document.getElementById("sDists").textContent=new Set(leads.map(l=>l.district)).size;
+}
+function updateDistFilter(d){
+  const sel=document.getElementById("fDist");
+  if(![...sel.options].some(o=>o.value===d)){const o=document.createElement("option");o.value=d;o.textContent=d;sel.appendChild(o);}
+}
+function updateCatFilter(c){
+  const sel=document.getElementById("fCat");
+  if(![...sel.options].some(o=>o.value===c)){const o=document.createElement("option");o.value=c;o.textContent=c;sel.appendChild(o);}
+}
+
+function renderTable(){
+  const q=document.getElementById("searchBox").value.toLowerCase();
+  const fd=document.getElementById("fDist").value;
+  const fc=document.getElementById("fCat").value;
+  const fn=document.getElementById("fNeed").value;
+  const filtered=leads.filter(l=>{
+    if(q&&!`${l.name} ${l.category} ${l.district} ${l.area} ${l.phone}`.toLowerCase().includes(q))return false;
+    if(fd&&l.district!==fd)return false;
+    if(fc&&l.category!==fc)return false;
+    if(fn==="noWeb"&&!l.noWeb)return false;
+    if(fn==="noPhone"&&!l.noPhone)return false;
+    if(fn==="lowRating"&&!l.lowRating)return false;
+    return true;
+  });
+  const tbody=document.getElementById("tbody");
+  if(!filtered.length){
+    tbody.innerHTML='<tr><td colspan="10" class="empty">No leads yet or no results match your filters.</td></tr>';
+    return;
+  }
+  tbody.innerHTML=filtered.slice(0,1000).map(l=>`
+    <tr>
+      <td style="color:#9ca3af;font-size:11px">${l.id}</td>
+      <td>
+        <a href="${l.mapsUrl}" target="_blank" style="color:#2563eb;font-weight:600;text-decoration:none;font-size:12px">${l.name}</a>
+        <div style="font-size:10px;color:#9ca3af;margin-top:1px">${l.area}</div>
+      </td>
+      <td><span class="b b-blue">${l.category}</span></td>
+      <td style="font-size:12px">${l.district}</td>
+      <td style="font-size:10px;color:#6b7280;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.address}">${l.address}</td>
+      <td style="font-size:12px;font-weight:${l.noPhone?'400':'600'};color:${l.noPhone?'#dc2626':'#111'}">${l.phone}</td>
+      <td style="font-size:11px">${l.noWeb?'<span class="b b-red">No website</span>':`<a href="${l.website}" target="_blank" style="color:#16a34a;font-size:10px">Has website</a>`}</td>
+      <td style="font-size:12px;color:${(!l.rating||l.reviews<5)?'#dc2626':'#374151'}">${l.rating||"—"} ${l.reviews>0?`(${l.reviews})`:"(0)"}</td>
+      <td style="font-size:10px;max-width:160px">${l.needs.split(", ").map(n=>`<span class="b b-amber">${n}</span>`).join("")}</td>
+      <td><span class="b ${l.priority==='Hot'?'b-hot':l.priority==='Warm'?'b-warm':'b-cold'}">${l.priority==='Hot'?'🔥 Hot':l.priority==='Warm'?'🌤 Warm':'🌱 Cold'}</span></td>
+    </tr>
+  `).join("");
+  if(filtered.length>1000){
+    tbody.innerHTML+=`<tr><td colspan="10" class="empty" style="font-size:11px">Showing 1,000 of ${filtered.length} results — export CSV for full list</td></tr>`;
+  }
+}
+
+function exportCSV(){
+  if(!leads.length){alert("No leads to export yet!");return;}
+  const q=document.getElementById("searchBox").value.toLowerCase();
+  const fd=document.getElementById("fDist").value;
+  const fc=document.getElementById("fCat").value;
+  const data=leads.filter(l=>{
+    if(q&&!`${l.name} ${l.category} ${l.district}`.toLowerCase().includes(q))return false;
+    if(fd&&l.district!==fd)return false;
+    if(fc&&l.category!==fc)return false;
+    return true;
+  });
+  const h=["ID","Business Name","Category","District","Area","Full Address","Phone","Website","Rating","Reviews","No Website","No Phone","Low Rating","What They Need","Priority","Google Maps URL","Place ID"];
+  const rows=data.map(l=>[l.id,l.name,l.category,l.district,l.area,l.address,l.phone,l.website,l.rating,l.reviews,l.noWeb?"YES":"NO",l.noPhone?"YES":"NO",l.lowRating?"YES":"NO",l.needs,l.priority,l.mapsUrl,l.placeId]);
+  const csv=[h,...rows].map(r=>r.map(c=>`"${String(c||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`Kerala_Leads_${data.length}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+</script>
+</body>
+</html>
